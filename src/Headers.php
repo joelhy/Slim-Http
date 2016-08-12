@@ -3,7 +3,7 @@
  * Slim Framework (http://slimframework.com)
  *
  * @link      https://github.com/slimphp/Slim
- * @copyright Copyright (c) 2011-2015 Josh Lockhart
+ * @copyright Copyright (c) 2011-2016 Josh Lockhart
  * @license   https://github.com/slimphp/Slim/blob/3.x/LICENSE.md (MIT License)
  */
 namespace Slim\Http;
@@ -59,6 +59,30 @@ class Headers extends Collection implements HeadersInterface
         }
 
         return new static($data);
+    }
+
+    /**
+     * If HTTP_AUTHORIZATION does not exist tries to get it from
+     * getallheaders() when available.
+     *
+     * @param Environment $environment The Slim application Environment
+     *
+     * @return Environment
+     */
+
+    public static function determineAuthorization(Environment $environment)
+    {
+        $authorization = $environment->get('HTTP_AUTHORIZATION');
+
+        if (null === $authorization && is_callable('getallheaders')) {
+            $headers = getallheaders();
+            $headers = array_change_key_case($headers, CASE_LOWER);
+            if (isset($headers['authorization'])) {
+                $environment->set('HTTP_AUTHORIZATION', $headers['authorization']);
+            }
+        }
+
+        return $environment;
     }
 
     /**
